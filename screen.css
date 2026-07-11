@@ -1,6 +1,12 @@
+@font-face {
+  font-family: "Minecraft";
+  src: url("./mac's Minecraft.otf") format("opentype");
+}
+
 * {
   box-sizing: border-box;
   user-select: none;
+  font-family: Minecraft;
 }
 
 body {
@@ -23,6 +29,10 @@ crafting-output {
   &:hover {
     background-color: rgba(255, 255, 255, 0.5);
   }
+
+  &:has(> inventory-item) {
+    cursor: grab;
+  }
 }
 
 crafting-grid {
@@ -41,6 +51,30 @@ inventory-grid {
   left: 12px;
   top: 94px;
   grid-template: repeat(3, 18px) / repeat(12, 18px);
+}
+
+inventory-item {
+  position: relative;
+
+  & > data {
+    position: absolute;
+    font-size: 7.7px;
+    color: #fcfcfc;
+    text-shadow: #3e3e3e 1px 1px;
+    bottom: 0;
+    width: 16px;
+    text-align: end;
+    text-rendering: geometricPrecision;
+    translate: 0.9px -2.1px;
+  }
+  
+  &::before {
+    display: block;
+    width: 16px;
+    height: 16px;
+    content: "";
+    background-size: 16px 16px;
+  }
 }
 
 img {
