@@ -83,5 +83,3 @@ export const amounts = {
   plank: 4,
   stick: 4,
 }
-
-console.log(recipes);

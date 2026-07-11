@@ -1,0 +1,48 @@
+* {
+  box-sizing: border-box;
+  user-select: none;
+}
+
+body {
+  margin: 0;
+}
+
+crafting-grid,
+inventory-grid {
+  position: absolute;
+  display: grid;
+  align-items: center;
+  justify-items: center;
+}
+
+inventory-cell,
+crafting-output {
+  width: 16px;
+  height: 16px;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.5);
+  }
+}
+
+crafting-grid {
+  left: 62px;
+  top: 22px;
+  grid-template: repeat(3, 18px) / repeat(3, 18px);
+}
+
+crafting-output {
+  position: absolute;
+  left: 157px;
+  top: 41px;
+}
+
+inventory-grid {
+  left: 12px;
+  top: 94px;
+  grid-template: repeat(3, 18px) / repeat(12, 18px);
+}
+
+img {
+  pointer-events: none;
+}
