@@ -124,17 +124,14 @@ export function mouseUp(event) {
   switch (state) {
     case 'split-evenly':
     case 'split-exhausted': {
-      if (splitTargets.size === 0) {
-        console.log('split to 0', event);
-        state = 'idle';
-        break;
-      } else if (splitTargets.size === 1) {
-        console.log('split to 1', event);
-        state = 'idle';
-        break;
+      if (splitTargets.size <= 1) {
+        const targetCell = event.target.closest('inventory-cell');
+        if (targetCell) {
+          depositAll(targetCell);
+        }
+      } else {
+        commitSplit();
       }
-
-      commitSplit();
       break;
     }
     
@@ -261,6 +258,7 @@ function updateSplitPreview() {
     const transferSize = Math.min(splitCount, available);
     setCount(targetStack, targetCount + transferSize);
     remainder -= transferSize;
+    // TODO: give stacks yellow text if they're too full to accomodate their full share of the split
 
     if (remainder === 0) break;
   }
@@ -281,6 +279,49 @@ function commitSplit() {
   } else {
     heldStack.removeAttribute('data-original-count');
   }
+
+  for (const target of splitTargets) {
+    target.firstElementChild?.removeAttribute('data-original-count');
+  }
+
+  splitTargets.clear();
+
+  state = 'idle';
+}
+
+function depositAll(targetCell) {
+  const heldStack = grabbedStack.firstElementChild;
+  const item = heldStack.getAttribute('data-item');
+  const heldCount = +heldStack.getAttribute('data-count');
+
+  const stackSize = stackSizes[item] ?? 64;
+
+  const targetStack = targetCell.firstElementChild;
+  if (!!targetStack && targetStack.getAttribute('data-item') !== item) {
+    // swap held and target stacks because they don't match
+    targetCell.appendChild(heldStack);
+    grabbedStack.appendChild(targetStack);
+  } else {
+    if (!targetStack) {
+      // deposit the full stack to the slot
+      targetCell.appendChild(heldStack);
+    } else {
+      // deposit as much as possible
+      const targetCount = +targetStack.getAttribute('data-count');
+      const available = stackSize - targetCount;
+      const transferSize = Math.min(heldCount, available);
+      const newCount = targetCount + transferSize;
+      setCount(targetStack, newCount);
+
+      if (transferSize < heldCount) {
+        setCount(heldStack, heldCount - transferSize);
+      } else {
+        heldStack.remove();
+      }
+    }
+  }
+
+  heldStack.removeAttribute('data-original-count');
 
   for (const target of splitTargets) {
     target.firstElementChild?.removeAttribute('data-original-count');

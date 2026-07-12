@@ -64,8 +64,13 @@ for (let i = 0; i < 12 * 3; i++) {
 
 document.addEventListener('mouseup', mouseUp);
 
-inventoryGrid.firstElementChild.appendChild(createItem('stick', 16));
-inventoryGrid.firstElementChild.nextElementSibling.appendChild(createItem('stick', 16));
+const inventory = document.querySelectorAll('inventory-grid > inventory-cell');
+inventory[0].appendChild(createItem('log', 64));
+inventory[1].appendChild(createItem('log', 64));
+inventory[2].appendChild(createItem('plank', 64));
+inventory[3].appendChild(createItem('plank', 64));
+inventory[4].appendChild(createItem('stick', 64));
+inventory[5].appendChild(createItem('stick', 64));
 
 window.addEventListener('message', m => handleMessage(m.data));
 window.parent.postMessage({ op: 'ready' });
