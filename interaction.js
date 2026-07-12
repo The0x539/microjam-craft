@@ -6,6 +6,8 @@ const inventoryGrid = document.querySelector('inventory-grid');
 
 let state = 'idle';
 
+const splitTargets = new Set();
+
 export function createItem(item, count) {
   const elem = document.createElement('item-stack');
   elem.setAttribute('data-item', item);
@@ -64,6 +66,13 @@ export function mouseDown(event) {
       // Right click: deposit one item. Drag to deposit one item in each cell
       state = 'split-one';
       depositOne(cell);
+    } else {
+      // Left click: split stack evenly across all empty/compatible cells.
+      // If no compatible cells are dragged over, swap stack with the cell the mouse was released on.
+      // (In the common case, this is just what a "click" looks like on a cell with incompatible contents.)
+      heldStack.setAttribute('data-original-count', heldStack.getAttribute('data-count'));
+      state = 'split-evenly';
+      addSplitTarget(cell);
     }
   }
 }
@@ -101,15 +110,34 @@ export function mouseEnter(event) {
     case 'split-one':
       depositOne(cell);
       break;
-    
-    default: {
+
+    case 'split-evenly':
+      addSplitTarget(cell);
       break;
-    }
+    
+    default:
+      break;
   }
 }
 
 export function mouseUp(event) {
   switch (state) {
+    case 'split-evenly':
+    case 'split-exhausted': {
+      if (splitTargets.size === 0) {
+        console.log('split to 0', event);
+        state = 'idle';
+        break;
+      } else if (splitTargets.size === 1) {
+        console.log('split to 1', event);
+        state = 'idle';
+        break;
+      }
+
+      commitSplit();
+      break;
+    }
+    
     case 'shift-drag':
     case 'pickup-drag':
     case 'split-one':
@@ -189,4 +217,76 @@ function shiftClickTransfer(sourceStack, targetGrid) {
       return;
     }
   }
+}
+
+function addSplitTarget(targetCell) {
+  const heldStack = grabbedStack.firstElementChild;
+  const item = heldStack.getAttribute('data-item');
+
+  const targetStack = targetCell.firstElementChild;
+  if (targetStack) {
+    if (targetStack.getAttribute('data-item') !== item) {
+      return;
+    }
+  }
+
+  splitTargets.add(targetCell);
+
+  if (splitTargets.size > 1) {
+    updateSplitPreview();
+  }
+}
+
+function updateSplitPreview() {
+  const heldStack = grabbedStack.firstElementChild;
+  const item = heldStack.getAttribute('data-item');
+  const heldCount = +heldStack.getAttribute('data-original-count');
+
+  const stackSize = stackSizes[item] ?? 64;
+
+  const splitCount = Math.max(1, Math.floor(heldCount / splitTargets.size));
+  let remainder = heldCount;
+
+  for (const targetCell of splitTargets) {
+    let targetStack = targetCell.firstElementChild;
+    if (!targetStack) {
+      targetStack = createItem(item, 0);
+      targetCell.appendChild(targetStack);
+    }
+    if (!targetStack.hasAttribute('data-original-count')) {
+      targetStack.setAttribute('data-original-count', targetStack.getAttribute('data-count'));
+    }
+    const targetCount = +targetStack.getAttribute('data-original-count');
+    const available = stackSize - targetCount;
+    const transferSize = Math.min(splitCount, available);
+    setCount(targetStack, targetCount + transferSize);
+    remainder -= transferSize;
+
+    if (remainder === 0) break;
+  }
+
+  setCount(heldStack, remainder);
+
+  if (splitCount === 1 && remainder === 0) {
+    state = 'split-exhausted';
+  }
+}
+
+function commitSplit() {
+  const heldStack = grabbedStack.firstElementChild;
+  const heldCount = +heldStack.getAttribute('data-count');
+  
+  if (heldCount === 0) {
+    heldStack.remove();
+  } else {
+    heldStack.removeAttribute('data-original-count');
+  }
+
+  for (const target of splitTargets) {
+    target.firstElementChild?.removeAttribute('data-original-count');
+  }
+
+  splitTargets.clear();
+
+  state = 'idle';
 }

@@ -37,7 +37,8 @@ crafting-output {
   width: 16px;
   height: 16px;
 
-  &:hover {
+  &:hover,
+  &:has(> item-stack[data-original-count]) {
     background-color: rgba(255, 255, 255, 0.5);
   }
 
