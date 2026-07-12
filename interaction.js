@@ -57,6 +57,14 @@ export function mouseDown(event) {
       grabbedStack.appendChild(sourceStack);
       state = 'pickup-drag';
     }
+  } else {
+    // Click with items held: deposit items
+
+    if (event.button === 2) {
+      // Right click: deposit one item. Drag to deposit one item in each cell
+      state = 'split-one';
+      depositOne(cell);
+    }
   }
 }
 
@@ -69,6 +77,7 @@ export function mouseEnter(event) {
       if (!sourceStack) break;
       const targetGrid = cell.parentElement === inventoryGrid ? craftingGrid : inventoryGrid;
       shiftClickTransfer(sourceStack, targetGrid);
+      break;
     }
 
     case 'pickup-drag': {
@@ -86,7 +95,12 @@ export function mouseEnter(event) {
 
       setCount(heldStack, newCount);
       sourceStack.remove();
+      break;
     }
+
+    case 'split-one':
+      depositOne(cell);
+      break;
     
     default: {
       break;
@@ -98,6 +112,7 @@ export function mouseUp(event) {
   switch (state) {
     case 'shift-drag':
     case 'pickup-drag':
+    case 'split-one':
       state = 'idle';
       break;
     
@@ -109,6 +124,35 @@ export function mouseUp(event) {
 function setCount(itemStack, value) {
   itemStack.setAttribute('data-count', value);
   itemStack.firstElementChild.textContent = value.toString();
+}
+
+function depositOne(targetCell) {
+  const heldStack = grabbedStack.firstElementChild;
+  const item = heldStack.getAttribute('data-item');
+  const heldCount = +heldStack.getAttribute('data-count');
+
+  const stackSize = stackSizes[item] ?? 64;
+
+  const targetStack = targetCell.firstElementChild;
+  if (targetStack) {
+    if (targetStack.getAttribute('data-item') !== item) {
+      return;
+    }
+
+    const targetCount = +targetStack.getAttribute('data-count');
+    if (targetCount >= stackSize) return;
+
+    setCount(targetStack, targetCount + 1);
+  } else {
+    targetCell.appendChild(createItem(item, 1));
+  }
+
+  if (heldCount === 1) {
+    heldStack.remove();
+    state = 'idle';
+  } else {
+    setCount(heldStack, heldCount - 1);
+  }
 }
 
 function shiftClickTransfer(sourceStack, targetGrid) {

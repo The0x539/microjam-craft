@@ -79,6 +79,10 @@ item-stack {
     translate: 0.9px -2.1px;
   }
 
+  &[data-count="0"] {
+    display: none;
+  }
+
   &[data-count="1"] > data {
     display: none;
   }
