@@ -83,3 +83,13 @@ export const amounts = {
   plank: 4,
   stick: 4,
 }
+
+export const stackSizes = {
+  helmet: 1,
+  chestplate: 1,
+  leggings: 1,
+  boots: 1,
+  pickaxe: 1,
+  rod: 1,
+  bow: 1,
+}

@@ -21,6 +21,17 @@ inventory-grid {
   justify-items: center;
 }
 
+grabbed-stack {
+  position: absolute;
+  translate: -50% -50%;
+  z-index: 10;
+  pointer-events: none;
+}
+
+:root:has(grabbed-stack > item-stack) {
+  cursor: grabbing;
+}
+
 inventory-cell,
 crafting-output {
   width: 16px;
@@ -30,7 +41,7 @@ crafting-output {
     background-color: rgba(255, 255, 255, 0.5);
   }
 
-  &:has(> inventory-item) {
+  &:has(> item-stack) {
     cursor: grab;
   }
 }
@@ -53,7 +64,7 @@ inventory-grid {
   grid-template: repeat(3, 18px) / repeat(12, 18px);
 }
 
-inventory-item {
+item-stack {
   position: relative;
 
   & > data {
@@ -66,6 +77,10 @@ inventory-item {
     text-align: end;
     text-rendering: geometricPrecision;
     translate: 0.9px -2.1px;
+  }
+
+  &[data-count="1"] > data {
+    display: none;
   }
   
   &::before {

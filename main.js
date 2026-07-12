@@ -1,4 +1,9 @@
-import { recipes, amounts } from "./data.js";
+import { recipes, amounts } from './data.js';
+import { createItem, mouseDown, mouseEnter, mouseUp } from './interaction.js';
+
+const grabbedStack = document.querySelector('grabbed-stack');
+const craftingGrid = document.querySelector('crafting-grid');
+const inventoryGrid = document.querySelector('inventory-grid');
 
 function handleMessage(msg) {
   if (msg.op === 'start') {
@@ -6,30 +11,28 @@ function handleMessage(msg) {
   }
 }
 
-function win() {
-  document.body.removeEventListener('click', win);
-  window.parent.postMessage({ op: 'done', win: true });
+function startGame(difficulty) {
+  document.addEventListener('mousemove', onMouseMove);
+  window.parent.postMessage({ op: 'started', verb: 'craft!' });
 }
 
-function startGame(difficulty) {
-  // document.body.addEventListener('click', win);
-  window.parent.postMessage({ op: 'started', verb: 'craft!' });
+function endGame(win) {
+  document.removeEventListener('mousemove', onMouseMove);
+  window.parent.postMessage({ op: 'done', win });
 }
 
 function createCell() {
   const elem = document.createElement('inventory-cell');
+  elem.addEventListener('mousedown', mouseDown);
+  elem.addEventListener('mouseenter', mouseEnter);
   return elem;
 }
 
-function createItem(item, count) {
-  const elem = document.createElement('inventory-item');
-  elem.setAttribute('data-item', item);
-  elem.setAttribute('data-count', count);
-  const countElem = document.createElement("data");
-  countElem.textContent = count.toString();
-  elem.appendChild(countElem);
-  return elem;
+function onMouseMove(event) {
+  grabbedStack.setAttribute('style', `left: ${event.clientX}px; top: ${event.clientY}px`);
 }
+
+document.addEventListener('contextmenu', e => e.preventDefault());
 
 const allItems = new Set();
 for (const [output, shape] of Object.entries(recipes)) {
@@ -45,14 +48,11 @@ const stylesheet = document.styleSheets[0];
 
 for (const item of allItems) {
   stylesheet.insertRule(`
-    inventory-item[data-item="${item}"]::before {
+    item-stack[data-item="${item}"]::before {
       background-image: url("./items/${item}.png");
     }
   `);
 }
-
-const craftingGrid = document.querySelector('crafting-grid');
-const inventoryGrid = document.querySelector('inventory-grid');
 
 for (let i = 0; i < 3 * 3; i++) {
   craftingGrid.appendChild(createCell());
@@ -62,7 +62,10 @@ for (let i = 0; i < 12 * 3; i++) {
   inventoryGrid.appendChild(createCell());
 }
 
-inventoryGrid.firstElementChild.appendChild(createItem('stick', 32));
+document.addEventListener('mouseup', mouseUp);
+
+inventoryGrid.firstElementChild.appendChild(createItem('stick', 16));
+inventoryGrid.firstElementChild.nextElementSibling.appendChild(createItem('stick', 16));
 
 window.addEventListener('message', m => handleMessage(m.data));
 window.parent.postMessage({ op: 'ready' });
