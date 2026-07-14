@@ -1,12 +1,16 @@
 @font-face {
   font-family: "Minecraft";
-  src: url("./mac's Minecraft.otf") format("opentype");
+  src: url("./MinecraftStandard.otf") format("opentype");
 }
 
 * {
   box-sizing: border-box;
   user-select: none;
   font-family: Minecraft;
+  font-smooth: never;
+  font-size: 6px;
+  text-rendering: geometricPrecision;
+  line-height: 1em;
 }
 
 body {
@@ -21,8 +25,13 @@ inventory-grid {
   justify-items: center;
 }
 
-grabbed-stack {
+follow-cursor {
   position: absolute;
+  pointer-events: none;
+}
+
+grabbed-stack {
+  display: block;
   translate: -50% -50%;
   z-index: 10;
   pointer-events: none;
@@ -66,18 +75,16 @@ inventory-grid {
 }
 
 item-stack {
+  display: block;
   position: relative;
 
   & > data {
     position: absolute;
-    font-size: 7.7px;
     color: #fcfcfc;
     text-shadow: #3e3e3e 1px 1px;
     bottom: 0;
-    width: 16px;
-    text-align: end;
-    text-rendering: geometricPrecision;
-    translate: 0.9px -2.1px;
+    right: 0;
+    translate: 1px -1px;
   }
 
   &[data-count="0"] {
@@ -103,4 +110,24 @@ item-stack {
 
 img {
   pointer-events: none;
+}
+
+item-tooltip {
+  display: block;
+  color: white;
+  border-style: solid;
+  border-width: 4px;
+  border-image-source: url("./tooltip-backdrop.png");
+  border-image-slice: 4 fill;
+  text-shadow: gray 1px 1px;
+  height: 16px;
+  line-height: 1em;
+  color: #fcfcfc;
+  text-shadow: #3e3e3e 1px 1px;
+  translate: 8px -100%;
+
+  &:empty,
+  &:has(+ * > item-stack) {
+    display: none;
+  }
 }

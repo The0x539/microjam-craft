@@ -9,7 +9,8 @@ import {
   resetInventory,
 } from './interaction.js';
 
-const grabbedStack = document.querySelector('grabbed-stack');
+const followCursor = document.querySelector('follow-cursor');
+const tooltip = document.querySelector('item-tooltip');
 const craftingGrid = document.querySelector('crafting-grid');
 const inventoryGrid = document.querySelector('inventory-grid');
 const craftingOutput = document.querySelector('crafting-output');
@@ -42,7 +43,7 @@ function startGame(difficulty) {
   
   giveItem('log', 64);
   giveItem('ingot', 64);
-  giveItem('clock', 8);
+  giveItem('clock', 16);
 
   document.addEventListener('mousemove', onMouseMove);
   timerInterval = setInterval(timer, 1000);
@@ -64,7 +65,15 @@ function createCell() {
 }
 
 function onMouseMove(event) {
-  grabbedStack.setAttribute('style', `left: ${event.clientX}px; top: ${event.clientY}px`);
+  followCursor.setAttribute('style', `left: ${event.clientX}px; top: ${event.clientY}px`);
+
+  const hoverItem = document.querySelector('item-stack:hover');
+  if (hoverItem !== null) {
+    const name = hoverItem.getAttribute('data-item');
+    tooltip.textContent = name;
+  } else {
+    tooltip.textContent = '';
+  }
 }
 
 document.addEventListener('contextmenu', e => e.preventDefault());
