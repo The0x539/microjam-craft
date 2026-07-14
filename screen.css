@@ -87,6 +87,10 @@ item-stack {
   &[data-count="1"] > data {
     display: none;
   }
+
+  &[data-item="clock"]::before {
+    background-image: url("./items/clock.gif");
+  }
   
   &::before {
     display: block;

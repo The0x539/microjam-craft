@@ -10,6 +10,14 @@ let state = 'idle';
 
 const splitTargets = new Set();
 
+export function resetInventory() {
+  for (const stack of document.querySelectorAll('item-stack')) {
+    stack.remove();
+  }
+  splitTargets.clear();
+  state = 'idle';
+}
+
 export function createItem(item, count) {
   const elem = document.createElement('item-stack');
   elem.setAttribute('data-item', item);
@@ -299,6 +307,48 @@ function updateRecipeOutput() {
   outputStack.setAttribute('data-item', item);
   setCount(outputStack, count);
   return true;
+}
+
+export function consumeClock() {
+  if (state === 'split-exhausted') {
+    commitSplit();
+  }
+
+  if (state === 'split-evenly' && splitTargets.size > 1) {
+    // oh dear. this is a complicated situation
+    // first, let's try to search for uninvolved clocks
+    const uninvolved = document.querySelector('inventory-cell > item-stack[data-item="clock"]:not([data-original-count])');
+    if (!!uninvolved) {
+      const count = getCount(uninvolved);
+      if (count === 1) {
+        uninvolved.remove();
+      } else {
+        setCount(uninvolved, count - 1);
+      }
+      // phew
+      return;
+    }
+
+    // okay so we will actually need to remove a clock from the items being split, ugh
+    // not a lot of code, but low confidence that it works properly
+    const heldStack = grabbedStack.firstElementChild;
+    const count = +heldStack.getAttribute('data-original-count');
+    heldStack.setAttribute('data-original-count', count - 1);
+    updateSplitPreview();
+    return;
+  }
+
+  const stack = document.querySelector('item-stack[data-item="clock"]');
+  const count = getCount(stack);
+  if (count === 1) {
+    if (stack.parentElement === grabbedStack) {
+      // conclude drag operations if they're done using a stack of clocks that gets deleted
+      state = 'idle';
+    }
+    stack.remove();
+  } else {
+    setCount(stack, count - 1);
+  }
 }
 
 function getCount(itemStack) {

@@ -1,5 +1,13 @@
 import { recipes, amounts } from './data.js';
-import { createItem, mouseDown, mouseEnter, mouseUp, craftClick } from './interaction.js';
+import {
+  createItem,
+  mouseDown,
+  mouseEnter,
+  mouseUp,
+  craftClick,
+  consumeClock,
+  resetInventory,
+} from './interaction.js';
 
 const grabbedStack = document.querySelector('grabbed-stack');
 const craftingGrid = document.querySelector('crafting-grid');
@@ -12,12 +20,38 @@ function handleMessage(msg) {
   }
 }
 
+function giveItem(item, count) {
+  const emptySlots = document.querySelectorAll('inventory-grid > inventory-cell:empty');
+  const index = Math.floor(Math.random() * emptySlots.length);
+  emptySlots[index].appendChild(createItem(item, count));
+}
+
+let timerInterval = null;
+
+function timer() {
+  if (!document.querySelector('item-stack[data-item="clock"]')) {
+    // time's up!
+    endGame(false);
+  } else {
+    consumeClock();
+  }
+}
+
 function startGame(difficulty) {
+  resetInventory();
+  
+  giveItem('log', 64);
+  giveItem('ingot', 64);
+  giveItem('clock', 8);
+
   document.addEventListener('mousemove', onMouseMove);
+  timerInterval = setInterval(timer, 1000);
   window.parent.postMessage({ op: 'started', verb: 'craft!' });
 }
 
 function endGame(win) {
+  clearInterval(timerInterval);
+  timerInterval = null;
   document.removeEventListener('mousemove', onMouseMove);
   window.parent.postMessage({ op: 'done', win });
 }
@@ -66,14 +100,6 @@ for (let i = 0; i < 12 * 3; i++) {
 document.addEventListener('mouseup', mouseUp);
 
 craftingOutput.addEventListener('click', craftClick);
-
-const inventory = document.querySelectorAll('inventory-grid > inventory-cell');
-inventory[0].appendChild(createItem('log', 64));
-inventory[1].appendChild(createItem('log', 64));
-inventory[2].appendChild(createItem('plank', 64));
-inventory[3].appendChild(createItem('plank', 64));
-inventory[4].appendChild(createItem('stick', 64));
-inventory[5].appendChild(createItem('stick', 64));
 
 window.addEventListener('message', m => handleMessage(m.data));
 window.parent.postMessage({ op: 'ready' });
