@@ -1,8 +1,10 @@
 import { stackSizes } from './data.js';
+import { getRecipeOutput } from './crafting.js';
 
 const grabbedStack = document.querySelector('grabbed-stack');
 const craftingGrid = document.querySelector('crafting-grid');
 const inventoryGrid = document.querySelector('inventory-grid');
+const outputCell = document.querySelector('crafting-output');
 
 let state = 'idle';
 
@@ -46,6 +48,7 @@ export function mouseDown(event) {
       const sourceCount = +sourceStack.getAttribute('data-count');
       if (sourceCount === 1) {
         grabbedStack.appendChild(sourceStack);
+        updateRecipeOutput();
         return;
       }
 
@@ -58,6 +61,7 @@ export function mouseDown(event) {
       // Left click: take the whole stack. Drag to pick up other stacks
       grabbedStack.appendChild(sourceStack);
       state = 'pickup-drag';
+      updateRecipeOutput();
     }
   } else {
     // Click with items held: deposit items
@@ -86,6 +90,7 @@ export function mouseEnter(event) {
       if (!sourceStack) break;
       const targetGrid = cell.parentElement === inventoryGrid ? craftingGrid : inventoryGrid;
       shiftClickTransfer(sourceStack, targetGrid);
+      updateRecipeOutput();
       break;
     }
 
@@ -98,12 +103,12 @@ export function mouseEnter(event) {
 
       const stackSize = stackSizes[item] ?? 64;
 
-      const heldCount = +grabbedStack.firstElementChild.getAttribute('data-count');
-      const newCount = heldCount + +sourceStack.getAttribute('data-count');
+      const newCount = getCount(heldStack) + getCount(sourceStack);
       if (newCount > stackSize) return;
 
       setCount(heldStack, newCount);
       sourceStack.remove();
+      updateRecipeOutput();
       break;
     }
 
@@ -146,6 +151,39 @@ export function mouseUp(event) {
   }
 }
 
+// Returns whether the output actually changed
+function updateRecipeOutput() {
+  const outputStack = outputCell.firstElementChild;
+
+  const output = getRecipeOutput();
+  if (output === null) {
+    if (outputStack === null) {
+      return false;
+    } else {
+      outputStack.remove();
+      return true;
+    }
+  }
+
+  const [item, count] = output;
+  if (outputStack === null) {
+    outputCell.appendChild(createItem(item, count));
+    return true;
+  }
+
+  if (outputStack.getAttribute('data-item') === item && getCount(outputStack) === count) {
+    return false;
+  }
+
+  outputStack.setAttribute('data-item', item);
+  setCount(outputStack, count);
+  return true;
+}
+
+function getCount(itemStack) {
+  return +itemStack.getAttribute('data-count');
+}
+
 function setCount(itemStack, value) {
   itemStack.setAttribute('data-count', value);
   itemStack.firstElementChild.textContent = value.toString();
@@ -178,6 +216,8 @@ function depositOne(targetCell) {
   } else {
     setCount(heldStack, heldCount - 1);
   }
+
+  updateRecipeOutput();
 }
 
 function shiftClickTransfer(sourceStack, targetGrid) {
@@ -201,6 +241,7 @@ function shiftClickTransfer(sourceStack, targetGrid) {
     count -= transferSize;
     if (count === 0) {
       sourceStack.remove();
+      updateRecipeOutput();
       return;
     } else {
       setCount(sourceStack, count);
@@ -211,9 +252,11 @@ function shiftClickTransfer(sourceStack, targetGrid) {
   for (const cell of targetGrid.children) {
     if (!cell.firstElementChild) {
       cell.appendChild(sourceStack);
-      return;
+      break;
     }
   }
+
+  updateRecipeOutput();
 }
 
 function addSplitTarget(targetCell) {
@@ -287,6 +330,8 @@ function commitSplit() {
   splitTargets.clear();
 
   state = 'idle';
+
+  updateRecipeOutput();
 }
 
 function depositAll(targetCell) {
@@ -330,4 +375,6 @@ function depositAll(targetCell) {
   splitTargets.clear();
 
   state = 'idle';
+
+  updateRecipeOutput();
 }
