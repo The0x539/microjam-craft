@@ -1,9 +1,10 @@
 import { recipes, amounts } from './data.js';
-import { createItem, mouseDown, mouseEnter, mouseUp } from './interaction.js';
+import { createItem, mouseDown, mouseEnter, mouseUp, craftClick } from './interaction.js';
 
 const grabbedStack = document.querySelector('grabbed-stack');
 const craftingGrid = document.querySelector('crafting-grid');
 const inventoryGrid = document.querySelector('inventory-grid');
+const craftingOutput = document.querySelector('crafting-output');
 
 function handleMessage(msg) {
   if (msg.op === 'start') {
@@ -63,6 +64,8 @@ for (let i = 0; i < 12 * 3; i++) {
 }
 
 document.addEventListener('mouseup', mouseUp);
+
+craftingOutput.addEventListener('click', craftClick);
 
 const inventory = document.querySelectorAll('inventory-grid > inventory-cell');
 inventory[0].appendChild(createItem('log', 64));

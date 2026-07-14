@@ -45,7 +45,7 @@ export function mouseDown(event) {
 
     if (event.button === 2) {
       // Right click: take half the stack, rounded up
-      const sourceCount = +sourceStack.getAttribute('data-count');
+      const sourceCount = getCount(sourceStack);
       if (sourceCount === 1) {
         grabbedStack.appendChild(sourceStack);
         updateRecipeOutput();
@@ -151,6 +151,64 @@ export function mouseUp(event) {
   }
 }
 
+export function craftClick(event) {
+  if (event.shiftKey) {
+    craftAll();
+  } else {
+    craftOne();
+  }
+}
+
+function craftOne() {
+  const previewStack = outputCell.firstElementChild;
+  if (!previewStack) return;
+
+  const item = previewStack.getAttribute('data-item');
+  const craftCount = getCount(previewStack);
+  const stackSize = stackSizes[item] ?? 64;
+
+  const heldStack = grabbedStack.firstElementChild;
+  if (heldStack !== null) {
+    if (heldStack.getAttribute('data-item') !== item) {
+      return;
+    }
+
+    const heldCount = getCount(heldStack);
+    if (heldCount + craftCount > stackSize) {
+      return;
+    }
+
+    setCount(heldStack, heldCount + craftCount);
+    consumeIngredients();
+  } else {
+    grabbedStack.appendChild(createItem(item, craftCount));
+    consumeIngredients();
+  }
+}
+
+function craftAll() {
+  // TODO
+}
+
+function consumeIngredients() {
+  let anyExhausted = false;
+
+  for (const cell of craftingGrid.children) {
+    const stack = cell.firstElementChild;
+    if (!stack) continue;
+
+    const count = getCount(stack);
+    if (count === 1) {
+      stack.remove();
+      anyExhausted = true;
+    } else {
+      setCount(stack, count - 1);
+    }
+  }
+
+  return anyExhausted && updateRecipeOutput();
+}
+
 // Returns whether the output actually changed
 function updateRecipeOutput() {
   const outputStack = outputCell.firstElementChild;
@@ -192,7 +250,7 @@ function setCount(itemStack, value) {
 function depositOne(targetCell) {
   const heldStack = grabbedStack.firstElementChild;
   const item = heldStack.getAttribute('data-item');
-  const heldCount = +heldStack.getAttribute('data-count');
+  const heldCount = getCount(heldStack);
 
   const stackSize = stackSizes[item] ?? 64;
 
@@ -202,7 +260,7 @@ function depositOne(targetCell) {
       return;
     }
 
-    const targetCount = +targetStack.getAttribute('data-count');
+    const targetCount = getCount(targetStack);
     if (targetCount >= stackSize) return;
 
     setCount(targetStack, targetCount + 1);
@@ -223,14 +281,14 @@ function depositOne(targetCell) {
 function shiftClickTransfer(sourceStack, targetGrid) {
   const item = sourceStack.getAttribute('data-item');
   const stackSize = stackSizes[item] ?? 64;
-  let count = +sourceStack.getAttribute('data-count');
+  let count = getCount(sourceStack);
 
   // First, search for existing stacks to add to
   for (const cell of targetGrid.children) {
     const targetStack = cell.firstElementChild;
     if (!targetStack) continue;
     if (targetStack.getAttribute('data-item') !== item) continue;
-    const curCount = +targetStack.getAttribute('data-count');
+    const curCount = getCount(targetStack);
     const available = stackSize - curCount;
     if (available === 0) continue; 
 
@@ -315,7 +373,7 @@ function updateSplitPreview() {
 
 function commitSplit() {
   const heldStack = grabbedStack.firstElementChild;
-  const heldCount = +heldStack.getAttribute('data-count');
+  const heldCount = getCount(heldStack);
   
   if (heldCount === 0) {
     heldStack.remove();
@@ -337,7 +395,7 @@ function commitSplit() {
 function depositAll(targetCell) {
   const heldStack = grabbedStack.firstElementChild;
   const item = heldStack.getAttribute('data-item');
-  const heldCount = +heldStack.getAttribute('data-count');
+  const heldCount = getCount(heldStack);
 
   const stackSize = stackSizes[item] ?? 64;
 
@@ -352,7 +410,7 @@ function depositAll(targetCell) {
       targetCell.appendChild(heldStack);
     } else {
       // deposit as much as possible
-      const targetCount = +targetStack.getAttribute('data-count');
+      const targetCount = getCount(targetStack);
       const available = stackSize - targetCount;
       const transferSize = Math.min(heldCount, available);
       const newCount = targetCount + transferSize;
