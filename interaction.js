@@ -187,7 +187,70 @@ function craftOne() {
 }
 
 function craftAll() {
-  // TODO
+  const previewStack = outputCell.firstElementChild;
+  if (!previewStack) return;
+
+  const item = previewStack.getAttribute('data-item');
+  const craftCount = getCount(previewStack);
+  const stackSize = stackSizes[item] ?? 64;
+
+  do {
+    let unallocated = craftCount;
+
+    const nonEmptyTargets = [];
+    let emptyTarget = null;
+
+    for (const cell of inventoryGrid.children) {
+      const stack = cell.firstElementChild;
+      if (stack === null) {
+        // This slot is empty.
+        // All crafting outputs that don't fit into existing stacks
+        // will be deposited into the first empty slot.
+        emptyTarget ??= cell;
+        continue;
+      }
+
+      if (stack.getAttribute('data-item') !== item) {
+        // This slot already contains a different item,
+        // so we can't add crafting outputs to it.
+        continue;
+      }
+
+      const spareCapacity = stackSize - getCount(stack);
+      if (spareCapacity <= 0) {
+        // This slot contains the correct item, but is already full.
+        continue;
+      }
+
+      const amountToAdd = Math.min(unallocated, spareCapacity);
+      unallocated -= amountToAdd;
+      nonEmptyTargets.push([stack, amountToAdd]);
+
+      if (unallocated === 0) {
+        // All crafting outputs can fit into existing stacks of the item.
+        break;
+      }
+    }
+
+    if (unallocated > 0 && emptyTarget === null) {
+      // The inventory is full: no slots are empty and existing stacks don't have enough room.
+      // Abort this attempt and conclude the loop.
+      break;
+    }
+
+    // Add crafting output to existing stacks, to whatever extent possible.
+    for (const [stack, amountToAdd] of nonEmptyTargets) {
+      setCount(stack, getCount(stack) + amountToAdd);
+    }
+
+    // Put any remaining items into the first empty slot.
+    if (unallocated > 0) {
+      emptyTarget.appendChild(createItem(item, unallocated));
+    }
+
+    // Consume one set of ingredients.
+    // Cease crafting if this causes the recipe output to change.
+  } while (!consumeIngredients());
 }
 
 function consumeIngredients() {
