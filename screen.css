@@ -131,3 +131,11 @@ item-tooltip {
     display: none;
   }
 }
+
+body.failed {
+  filter: brightness(0.8) sepia(75%) hue-rotate(-45deg);
+  cursor: not-allowed;
+  & > * {
+    pointer-events: none;
+  }
+}

@@ -15,6 +15,54 @@ const craftingGrid = document.querySelector('crafting-grid');
 const inventoryGrid = document.querySelector('inventory-grid');
 const craftingOutput = document.querySelector('crafting-output');
 
+const desiredCrafts = new Set();
+
+const playSound = {
+  playImpl(id, volume = 1.0, pitch = 1.0) {
+    const audio = document.getElementById(id);
+
+    const p = new Promise(resolve => {
+      const f = (event) => {
+        audio.removeEventListener('ended', f);
+        resolve(event);
+      };
+      audio.addEventListener('ended', f);
+    });
+
+    audio.volume = volume;
+    audio.playbackRate = pitch;
+    audio.preservesPitch = false;
+
+    audio.play();
+    return p;
+  },
+
+  smallDing() {
+    return this.playImpl('small-ding', 0.1, 0.55 + 0.7 * Math.random());
+  },
+
+  bigDing() {
+    return this.playImpl('big-ding', 0.75);
+  },
+
+  oof() {
+    return this.playImpl('oof', 0.75);
+  },
+};
+
+function onCraft(event) {
+  const item = event.item;
+  if (desiredCrafts.has(item)) {
+    desiredCrafts.delete(item);
+
+    if (desiredCrafts.size > 0) {
+      playSound.smallDing();
+    } else {
+      endGame(true);
+    }
+  }
+}
+
 function handleMessage(msg) {
   if (msg.op === 'start') {
     startGame(msg.difficulty);
@@ -39,20 +87,37 @@ function timer() {
 }
 
 function startGame(difficulty) {
+  document.body.classList.remove('failed');
+
+  desiredCrafts.clear();
+  desiredCrafts.add('helmet');
+  desiredCrafts.add('chestplate');
+  desiredCrafts.add('leggings');
+  desiredCrafts.add('boots');
+
   resetInventory();
   
   giveItem('log', 64);
   giveItem('ingot', 64);
-  giveItem('clock', 16);
+  giveItem('clock', 12);
+  giveItem('dust', 16);
+  giveItem('cobble', 16);
 
   document.addEventListener('mousemove', onMouseMove);
   timerInterval = setInterval(timer, 1000);
   window.parent.postMessage({ op: 'started', verb: 'craft!' });
 }
 
-function endGame(win) {
+async function endGame(win) {
   clearInterval(timerInterval);
   timerInterval = null;
+  if (win) {
+    await playSound.bigDing();
+  } else {
+    document.body.classList.add('failed');
+    await playSound.oof();
+  }
+  await new Promise(resolve => setTimeout(resolve, 500));
   document.removeEventListener('mousemove', onMouseMove);
   window.parent.postMessage({ op: 'done', win });
 }
@@ -107,6 +172,7 @@ for (let i = 0; i < 12 * 3; i++) {
 }
 
 document.addEventListener('mouseup', mouseUp);
+document.addEventListener('craft', onCraft);
 
 craftingOutput.addEventListener('click', craftClick);
 

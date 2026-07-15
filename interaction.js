@@ -1,6 +1,14 @@
 import { stackSizes } from './data.js';
 import { getRecipeOutput } from './crafting.js';
 
+class CraftEvent extends Event {
+  item;
+  constructor(item) {
+    super('craft');
+    this.item = item;
+  }
+}
+
 const grabbedStack = document.querySelector('grabbed-stack');
 const craftingGrid = document.querySelector('crafting-grid');
 const inventoryGrid = document.querySelector('inventory-grid');
@@ -187,11 +195,11 @@ function craftOne() {
     }
 
     setCount(heldStack, heldCount + craftCount);
-    consumeIngredients();
   } else {
     grabbedStack.appendChild(createItem(item, craftCount));
-    consumeIngredients();
   }
+  consumeIngredients();
+  document.dispatchEvent(new CraftEvent(item));
 }
 
 function craftAll() {
@@ -201,6 +209,8 @@ function craftAll() {
   const item = previewStack.getAttribute('data-item');
   const craftCount = getCount(previewStack);
   const stackSize = stackSizes[item] ?? 64;
+
+  let success = false;
 
   do {
     let unallocated = craftCount;
@@ -256,9 +266,15 @@ function craftAll() {
       emptyTarget.appendChild(createItem(item, unallocated));
     }
 
+    success = true;
+
     // Consume one set of ingredients.
     // Cease crafting if this causes the recipe output to change.
   } while (!consumeIngredients());
+
+  if (success) {
+    document.dispatchEvent(new CraftEvent(item));
+  }
 }
 
 function consumeIngredients() {
