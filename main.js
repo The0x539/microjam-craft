@@ -21,6 +21,8 @@ const playSound = {
   playImpl(id, volume = 1.0, pitch = 1.0) {
     const audio = document.getElementById(id);
 
+    audio.currentTime = 0;
+
     const p = new Promise(resolve => {
       const f = (event) => {
         audio.removeEventListener('ended', f);
