@@ -139,3 +139,30 @@ body.failed {
     pointer-events: none;
   }
 }
+
+label[for="todo-list"] {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  color: #3f3f3f;
+
+  &:has(+ #todo-list:empty) {
+    display: none;
+  }
+}
+
+#todo-list {
+  position: absolute;
+  left: 12px;
+  top: 24px;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  width: 32px;
+  flex-wrap: wrap;
+  justify-content: center;
+
+  & > li {
+    list-style: none;
+  }
+}

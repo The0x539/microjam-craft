@@ -354,7 +354,7 @@ export function consumeClock() {
     return;
   }
 
-  const stack = document.querySelector('item-stack[data-item="clock"]');
+  const stack = document.querySelector('item-stack[data-item="clock"][data-count]');
   const count = getCount(stack);
   if (count === 1) {
     if (stack.parentElement === grabbedStack) {

@@ -14,6 +14,7 @@ const tooltip = document.querySelector('item-tooltip');
 const craftingGrid = document.querySelector('crafting-grid');
 const inventoryGrid = document.querySelector('inventory-grid');
 const craftingOutput = document.querySelector('crafting-output');
+const todoList = document.getElementById('todo-list');
 
 const desiredCrafts = new Set();
 
@@ -57,6 +58,8 @@ function onCraft(event) {
   if (desiredCrafts.has(item)) {
     desiredCrafts.delete(item);
 
+    document.querySelector(`#todo-list > li:has([data-item="${item}"])`)?.remove();
+
     if (desiredCrafts.size > 0) {
       playSound.smallDing();
     } else {
@@ -91,13 +94,24 @@ function timer() {
 function startGame(difficulty) {
   document.body.classList.remove('failed');
 
+  resetInventory();
+
   desiredCrafts.clear();
   desiredCrafts.add('helmet');
   desiredCrafts.add('chestplate');
   desiredCrafts.add('leggings');
   desiredCrafts.add('boots');
 
-  resetInventory();
+  todoList.replaceChildren();
+  for (const item of desiredCrafts) {
+    const listItem = document.createElement('li');
+
+    const stack = document.createElement('item-stack');
+    stack.setAttribute('data-item', item);
+    listItem.append(stack);
+
+    todoList.append(listItem);
+  }
   
   giveItem('log', 64);
   giveItem('ingot', 64);
