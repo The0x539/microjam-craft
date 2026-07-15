@@ -37,6 +37,9 @@ export function createItem(item, count) {
 }
 
 export function mouseDown(event) {
+  if (state !== 'idle') return;
+  if (event.button !== 0 && event.button !== 2) return;
+
   const cell = event.currentTarget;
 
   // Shift click: Transfer a full stack to the other place.
@@ -145,6 +148,8 @@ export function mouseUp(event) {
   switch (state) {
     case 'split-evenly':
     case 'split-exhausted': {
+      if (event.button !== 0) return;
+
       if (splitTargets.size <= 1) {
         const targetCell = event.target.closest('inventory-cell');
         if (targetCell) {
@@ -155,13 +160,22 @@ export function mouseUp(event) {
       }
       break;
     }
-    
-    case 'shift-drag':
+
     case 'pickup-drag':
-    case 'split-one':
+      if (event.button !== 0) return;
       state = 'idle';
       break;
     
+    case 'split-one':
+      if (event.button !== 1) return;
+      state = 'idle';
+      break;
+
+    case 'shift-drag':
+      // this could be either button. whatever.
+      state = 'idle';
+      break;
+
     default:
       break;
   }
