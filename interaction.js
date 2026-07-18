@@ -167,7 +167,7 @@ export function mouseUp(event) {
       break;
     
     case 'split-one':
-      if (event.button !== 1) return;
+      if (event.button !== 2) return;
       state = 'idle';
       break;
 
