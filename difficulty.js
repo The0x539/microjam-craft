@@ -5,7 +5,7 @@ export const scenarios = [
       log: 2,
     },
     goal: ['chest'],
-    time: _ => 15,
+    time: _ => 10,
   },
   {
     level: 5,
