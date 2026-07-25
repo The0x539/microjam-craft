@@ -8,6 +8,7 @@ import {
   consumeClock,
   resetInventory,
 } from './interaction.js';
+import { scenarios } from './difficulty.js';
 
 const followCursor = document.querySelector('follow-cursor');
 const tooltip = document.querySelector('item-tooltip');
@@ -96,11 +97,13 @@ function startGame(difficulty) {
 
   resetInventory();
 
+  const scenario = scenarios.find(s => difficulty <= s.upTo)
+    ?? scenarios[scenarios.length - 1];
+
   desiredCrafts.clear();
-  desiredCrafts.add('helmet');
-  desiredCrafts.add('chestplate');
-  desiredCrafts.add('leggings');
-  desiredCrafts.add('boots');
+  for (const item of scenario.goal) {
+    desiredCrafts.add(item);
+  }
 
   todoList.replaceChildren();
   for (const item of desiredCrafts) {
@@ -112,12 +115,11 @@ function startGame(difficulty) {
 
     todoList.append(listItem);
   }
-  
-  giveItem('log', 64);
-  giveItem('ingot', 64);
-  giveItem('clock', 12);
-  giveItem('dust', 16);
-  giveItem('cobble', 16);
+
+  for (const [item, amount] of Object.entries(scenario.items)) {
+    giveItem(item, amount);
+  }
+  giveItem('clock', scenario.time(difficulty));
 
   document.addEventListener('mousemove', onMouseMove);
   timerInterval = setInterval(timer, 1000);
