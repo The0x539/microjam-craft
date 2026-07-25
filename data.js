@@ -7,6 +7,7 @@ const ingredients = {
   c: 'cobble',
   C: 'chest',
   S: 'string',
+  g: 'gold',
 }
 
 function recipe(...shape) {
@@ -76,6 +77,11 @@ export const recipes = {
     ' sS',
     's S',
     ' sS',
+  ),
+  clock: recipe(
+    ' g ',
+    'gdg',
+    ' g ',
   ),
 };
 

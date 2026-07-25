@@ -84,7 +84,7 @@ function giveItem(item, count) {
 let timerInterval = null;
 
 function timer() {
-  if (!document.querySelector('item-stack[data-item="clock"]')) {
+  if (!document.querySelector('item-stack[data-item="clock"]:not(crafting-output item-stack)')) {
     // time's up!
     endGame(false);
   } else {

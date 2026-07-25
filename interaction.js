@@ -347,7 +347,7 @@ export function consumeClock() {
   if (state === 'split-evenly' && splitTargets.size > 1) {
     // oh dear. this is a complicated situation
     // first, let's try to search for uninvolved clocks
-    const uninvolved = document.querySelector('inventory-cell > item-stack[data-item="clock"]:not([data-original-count])');
+    const uninvolved = document.querySelector('inventory-cell > item-stack[data-item="clock"]:not([data-original-count]):not(crafting-output item-stack)');
     if (!!uninvolved) {
       const count = getCount(uninvolved);
       if (count === 1) {
@@ -368,7 +368,7 @@ export function consumeClock() {
     return;
   }
 
-  const stack = document.querySelector('item-stack[data-item="clock"][data-count]');
+  const stack = document.querySelector('item-stack[data-item="clock"][data-count]:not(crafting-output item-stack)')
   const count = getCount(stack);
   if (count === 1) {
     if (stack.parentElement === grabbedStack) {
