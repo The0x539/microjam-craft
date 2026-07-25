@@ -97,8 +97,7 @@ function startGame(difficulty) {
 
   resetInventory();
 
-  const scenario = scenarios.find(s => difficulty <= s.upTo)
-    ?? scenarios[scenarios.length - 1];
+  const scenario = scenarios.toReversed().find(s => difficulty >= s.level);
 
   desiredCrafts.clear();
   for (const item of scenario.goal) {
@@ -119,7 +118,7 @@ function startGame(difficulty) {
   for (const [item, amount] of Object.entries(scenario.items)) {
     giveItem(item, amount);
   }
-  giveItem('clock', scenario.time(difficulty));
+  giveItem('clock', scenario.time(difficulty - scenario.level));
 
   document.addEventListener('mousemove', onMouseMove);
   timerInterval = setInterval(timer, 1000);
